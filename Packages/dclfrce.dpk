@@ -8,14 +8,17 @@
 {                                                                              }
 { Direitos Autorais Reservados(c) Copyright © 1999-2015 Fortes Informática     }
 {                                                                              }
-{ Colaboradores nesse arquivo: Márcio Martins                                  }
-{                              Ronaldo Moreira                                 }
+{ Colaboradores nesse arquivo: Ronaldo Moreira                                 }
+{                              Márcio Martins                                  }
 {                              Régys Borges da Silveira                        }
 {                              Juliomar Marchetti                              }
 {                                                                              }
-{  Você pode obter a última versão desse arquivo na pagina do  Projeto         }
+{  Você pode obter a última versão desse arquivo na pagina do Projeto          }
 {  localizado em                                                               }
 { https://github.com/fortesinformatica/fortesreport-ce                         }
+{                                                                              }
+{  Para mais informações você pode consultar o site www.fortesreport.com.br ou }
+{  no Yahoo Groups https://groups.yahoo.com/neo/groups/fortesreport/info       }
 {                                                                              }
 {  Esta biblioteca é software livre; você pode redistribuí-la e/ou modificá-la }
 { sob os termos da Licença Pública Geral Menor do GNU conforme publicada pela  }
@@ -34,77 +37,46 @@
 { http://www.opensource.org/licenses/gpl-license.php                           }
 {                                                                              }
 {******************************************************************************}
+package dclfrce;
 
-{******************************************************************************
-|* Historico
-|*
-|* xx/xx/xxxx:  Autor...
-|* - Descrição...
-******************************************************************************}
-
-//Atualmente homologado somente para VCL, porém há uma trabalho sendo feito para
-//que o mesmo código seja usado no Delphi ou no Lazarus
-{.$DEFINE VCL}
-{.$DEFINE FMK}
-{.$DEFINE KYLIX}
-{.$DEFINE FREEPASCAL}
-
-// Para Remover Warnings de CAST causados por WideString/String/AnsiString, descomente a linha abaixo. (Copiado do Projeto ACBr)
-{.$DEFINE REMOVE_CAST_WARN}
-
-{$IFDEF FPC}
-  {$DEFINE VCL}
-  {$DEFINE UNICODE} // Lazarus 0.9.26 usa UnicodeString como default para String
-  {$DEFINE DELPHI7}
-  {$DEFINE COMPILER7}
-  {$DEFINE HAS_FORMATSETTINGS}
-  {$H+}
-  {$UNDEF REMOVE_CAST_WARN} //Devido a problemas com a mensagem de erro "Message recordind not yet supported"
-{$ELSE}
-  {$DEFINE BORLAND}
-{$ENDIF}
-
-// biblioteca do Jedi assim temos atualizado sempre
-{$I RLReport_jedi.inc}
-
-//Para compilação em IDE C++Builder (sem Delphi personality)
-{$IFDEF BCB}
-  {$I RLReport_BCB.inc}
-{$ENDIF}
-
-{$IFDEF DELPHI15_UP}
-  {$DEFINE HAS_FORMATSETTINGS}
-{$ENDIF}
-
-{$IFNDEF DELPHIXE2_UP}
-  {$IFDEF BORLAND}
-    {$UNDEF REMOVE_CAST_WARN}
-  {$ENDIF}
-{$ENDIF}
-
-{$IFDEF REMOVE_CAST_WARN}
-  {$WARN IMPLICIT_STRING_CAST OFF}
-  {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
-  {$WARN SYMBOL_PLATFORM OFF}
-  {.$WARN SYMBOL_DEPRECATED OFF}
-  {$IFDEF BORLAND}
-    {$WARN DUPLICATE_CTOR_DTOR OFF}
-    {$WARN CVT_ACHAR_TO_WCHAR OFF}
-  {$ENDIF}
-{$ENDIF}
-
-// Remova o Ponto do DEFINE abaixo, se seu Delphi suporta PNG.
-//    - Se não suportar (D7),
-//  	- Acesse: https://sourceforge.net/projects/pngdelphi2/files/
-//      - Instale o projeto e depois remova o Ponto da Linha abaixo
-{.$DEFINE SUPPORT_PNG}
-
-{$IFDEF DELPHI2009_UP}
-  {$DEFINE SUPPORT_PNG}
-{$ENDIF}
-{$IFDEF FPC}
-  {$DEFINE SUPPORT_PNG}
-{$ENDIF}
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Fortes Report Comunity Edition (design-time)'}
+{$IMPLICITBUILD OFF}
+{$DEFINE RELEASE}
+{$DEFINE DELPHI}
+{$DEFINE VCL}
+{$DESIGNONLY}
 
 
+requires
+  rtl,
+  frce,
+  designide;
+
+contains
+  RLReg in '..\Source\RLReg.pas',
+  RLDesign in '..\Source\RLDesign.pas';
+
+end.
 

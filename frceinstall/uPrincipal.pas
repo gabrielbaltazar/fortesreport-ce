@@ -152,6 +152,7 @@ type
     procedure AddLibraryPathToDelphiPath(const APath, AProcurarRemover: String);
     procedure FindDirs(ADirRoot: String; bAdicionar: Boolean = True);
     procedure CopiarArquivosToLib;
+    procedure InstalarOPacoteNoDelphi(const NomePacote: String);
   public
 
   end;
@@ -347,7 +348,9 @@ begin
   begin
     // tentar ler o path configurado na ide do delphi, se não existir ler
     // a atual para complementar e fazer o override
-    PathsAtuais := Trim(EnvironmentVariables.Values['PATH']);
+    PathsAtuais := ConfigData.ReadString(cs, 'PATH', '$(PATH)');
+    if PathsAtuais = '$(PATH)' then
+      PathsAtuais := Trim(EnvironmentVariables.Values['PATH']);
     if PathsAtuais = '' then
       PathsAtuais := GetEnvironmentVariable('PATH');
 
@@ -532,7 +535,7 @@ begin
      if VersionNumberStr = 'd16' then
         Sender.Options.Add('-NSData.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Winapi;System.Win');
 
-     if MatchText(VersionNumberStr, ['d17','d18','d19','d20','d21','d22','d23','d24','d25','d26','d27','d28']) then
+     if MatchText(VersionNumberStr, ['d17','d18','d19','d20','d21','d22','d23','d24','d25','d26','d27','d28','d29']) then
         Sender.Options.Add('-NSWinapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell');
 
   end;
@@ -599,7 +602,9 @@ begin
     else if oFRCE.Installations[iFor].VersionNumberStr = 'd27' then
       edtDelphiVersion.Items.Add('Delphi 10.4 Sydney')
     else if oFRCE.Installations[iFor].VersionNumberStr = 'd28' then
-      edtDelphiVersion.Items.Add('Delphi 11 Alexandria');
+      edtDelphiVersion.Items.Add('Delphi 11 Alexandria')
+    else if oFRCE.Installations[iFor].VersionNumberStr = 'd29' then
+      edtDelphiVersion.Items.Add('Delphi 12');
 
     // -- Evento disparado antes de iniciar a execução do processo.
     oFRCE.Installations[iFor].DCC32.OnBeforeExecute := BeforeExecute;
@@ -625,10 +630,26 @@ end;
 // botão de compilação e instalação dos pacotes selecionados no treeview
 procedure TfrmPrincipal.btnInstalarfrceClick(Sender: TObject);
 var
-  iDpk: Integer;
+//  iDpk: Integer;
   bRunOnly: Boolean;
   NomePacote: String;
   Cabecalho: String;
+  function ExistePacoteDesingtimeParaPacote(NomeArquivoPacoteDCL: string): boolean;
+  var
+    bRunOnlyLocal:Boolean;
+  begin
+    Result := False;
+    if not FileExists(NomeArquivoPacoteDCL) then
+    begin
+      Exit;
+    end;
+    if not IsDelphiPackage(NomeArquivoPacoteDCL) then
+    begin
+      Exit;
+    end;
+    GetDPKFileInfo(NomeArquivoPacoteDCL, bRunOnlyLocal);
+    Result := not bRunOnlyLocal;
+  end;
 
   procedure MostrarMensagemInstalado(const aMensagem: String; const aErro: String = '');
   var
@@ -751,29 +772,13 @@ begin
           GetDPKFileInfo(sDirPackage + NomePacote, bRunOnly);
           if not bRunOnly then
           begin
-            WriteToTXT(AnsiString(PathArquivoLog), AnsiString(''));
-
-            if oFRCE.Installations[iVersion].InstallPackage(sDirPackage + NomePacote, sDirLibrary, sDirLibrary) then
-            begin
-              lstMsgInstalacao.Items.Add(Format('Pacote "%s" instalado com sucesso.', [NomePacote]));
-              lstMsgInstalacao.ItemIndex := lstMsgInstalacao.Count - 1;
-            end
-            else
-            begin
-              Inc(FCountErros);
-              lstMsgInstalacao.Items.Add(Format('Ocorreu um erro ao instalar o pacote "%s".', [NomePacote]));
-              lstMsgInstalacao.ItemIndex := lstMsgInstalacao.Count - 1;
-            end;
-//              else
-//              begin
-//                WriteToTXT(AnsiString(PathArquivoLog), AnsiString(''));
-//
-//                if oFRCE.Installations[iVersion].UninstallPackage(sDirPackage + NomePacote, sDirLibrary, sDirLibrary) then
-//                begin
-//                  lstMsgInstalacao.Items.Add(Format('Pacote "%s" removido com sucesso...', [NomePacote]));
-//                  lstMsgInstalacao.ItemIndex := lstMsgInstalacao.Count - 1;
-//                end;
-//              end;
+            InstalarOPacoteNoDelphi(NomePacote);
+          end
+          else
+          begin
+            //procura um pacote desingtime para o pacote RunOnly
+            if ExistePacoteDesingtimeParaPacote(sDirPackage + 'dcl'+ NomePacote) then
+              InstalarOPacoteNoDelphi('dcl'+ NomePacote);
           end;
         end;
         pgbInstalacao.Position := pgbInstalacao.Position + 1;
@@ -1035,6 +1040,33 @@ end;
 procedure TfrmPrincipal.btnVisualizarLogCompilacaoClick(Sender: TObject);
 begin
   ShellExecute(Handle, 'open', PWideChar(PathArquivoLog), '', '', 1);
+end;
+
+procedure TfrmPrincipal.InstalarOPacoteNoDelphi(const NomePacote: String);
+begin
+  WriteToTXT(AnsiString(PathArquivoLog), AnsiString(''));
+
+  if oFRCE.Installations[iVersion].InstallPackage(sDirPackage + NomePacote, sDirLibrary, sDirLibrary) then
+  begin
+    lstMsgInstalacao.Items.Add(Format('Pacote "%s" instalado com sucesso.', [NomePacote]));
+    lstMsgInstalacao.ItemIndex := lstMsgInstalacao.Count - 1;
+  end
+  else
+  begin
+    Inc(FCountErros);
+    lstMsgInstalacao.Items.Add(Format('Ocorreu um erro ao instalar o pacote "%s".', [NomePacote]));
+    lstMsgInstalacao.ItemIndex := lstMsgInstalacao.Count - 1;
+  end;
+//  else
+//  begin
+//    WriteToTXT(AnsiString(PathArquivoLog), AnsiString(''));
+//
+//    if oFRCE.Installations[iVersion].UninstallPackage(sDirPackage + NomePacote, sDirLibrary, sDirLibrary) then
+//    begin
+//      lstMsgInstalacao.Items.Add(Format('Pacote "%s" removido com sucesso...', [NomePacote]));
+//      lstMsgInstalacao.ItemIndex := lstMsgInstalacao.Count - 1;
+//    end;
+//  end;
 end;
 
 procedure TfrmPrincipal.wizPrincipalCancelButtonClick(Sender: TObject);

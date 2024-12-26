@@ -49,6 +49,8 @@
 {@unit RLPDFFilter - Implementação do filtro para criação de arquivos PDF. }
 unit RLPDFFilter;
 
+{$Q-}
+{$R-}
 interface
 
 uses
@@ -740,12 +742,16 @@ var
   B: TBitmap;
 begin
   B := NeedAuxBitmap;
-  with B.Canvas do
-  begin
-    Font.Name := AFont.Name;
-    Font.Size := AFont.Size;
-    Result.X := TextWidth(AText);
-    Result.Y := TextHeight(AText);
+  try
+    with B.Canvas do
+    begin
+      Font.Name := AFont.Name;
+      Font.Size := AFont.Size;
+      Result.X := TextWidth(AText);
+      Result.Y := TextHeight(AText);
+    end;
+  finally
+    B.Free;
   end;
 end;
 
@@ -1480,7 +1486,7 @@ begin
           Writeln;
           W := 0;
         end;
-        Write(IntToStr(rec.Widths[J]) + ' ');
+        Write(IntToStr(MulDiv(rec.Widths[J], 96, ScreenPPI)) + ' ');
         Inc(W);
       end;
       Writeln;
